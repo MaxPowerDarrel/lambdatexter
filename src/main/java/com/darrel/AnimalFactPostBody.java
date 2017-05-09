@@ -1,11 +1,12 @@
 package com.darrel;
 
-public class CatFactPostBody {
-    private final String title = "Cat Fact";
+public class AnimalFactPostBody {
+    private final String title;
     private final String text;
 
-    public CatFactPostBody(String text) {
+    public AnimalFactPostBody(String title, String text) {
         this.text = text;
+        this.title = title;
     }
 
     public String getTitle() {

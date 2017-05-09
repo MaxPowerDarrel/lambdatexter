@@ -1,6 +1,6 @@
 package com.darrel;
 
-public class CatFact {
+public class AnimalFact {
     private String[] facts;
     private boolean success;
 

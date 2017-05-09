@@ -7,10 +7,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Random;
 
 public class Texter {
 
-    private static void sendBuzzMessage(String message) {
+    private static void sendBuzzMessage(AnimalFactPostBody postBody) {
         try {
             String url = System.getenv("URL");
             URL obj = new URL(url);
@@ -18,8 +19,8 @@ public class Texter {
             connection.setRequestMethod("POST");
             connection.setRequestProperty("Content-Type", "application/json");
             connection.setDoOutput(true);
-            CatFactPostBody catFactPostBody = new CatFactPostBody(message);
-            String postData = new ObjectMapper().writeValueAsString(catFactPostBody);
+
+            String postData = new ObjectMapper().writeValueAsString(postBody);
             try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
                 wr.write(postData.getBytes());
             }
@@ -29,24 +30,26 @@ public class Texter {
         }
     }
 
-    private static String getCatFact() {
+    private static AnimalFactPostBody getAnimalFact() {
         try {
-            String url = "http://catfacts-api.appspot.com/api/facts?number=1";
+            int random = new Random().nextInt(2);
+            String url = random == 0 ? "http://catfacts-api.appspot.com/api/facts?number=1" : "https://dog-api.kinduff.com/api/facts?number=1";
 
             URL obj = new URL(url);
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 
             con.setRequestMethod("GET");
 
-            CatFact catFact = new ObjectMapper().readValue(con.getInputStream(), CatFact.class);
+            AnimalFact animalFact = new ObjectMapper().readValue(con.getInputStream(), AnimalFact.class);
 
-            return catFact.getFacts()[0];
+            return new AnimalFactPostBody(random == 0 ? "Cat Fact" : "Dog Fact", animalFact.getFacts()[0]);
         } catch (IOException e) {
-            return "Error";
+            e.printStackTrace();
+            return null;
         }
     }
 
     public static void main() {
-        sendBuzzMessage(getCatFact());
+        sendBuzzMessage(getAnimalFact());
     }
 }
