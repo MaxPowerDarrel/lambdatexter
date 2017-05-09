@@ -1,33 +1,35 @@
 package com.darrel;
 
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.sns.AmazonSNS;
-import com.amazonaws.services.sns.AmazonSNSClientBuilder;
-import com.amazonaws.services.sns.model.PublishRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import javax.net.ssl.HttpsURLConnection;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Texter {
 
-    private final AmazonSNS amazonSNS;
-
-    public Texter() {
-        AmazonSNSClientBuilder builder = AmazonSNSClientBuilder.standard().withCredentials(new DefaultAWSCredentialsProviderChain());
-        builder.setRegion(System.getenv("Region"));
-        amazonSNS = builder.build();
+    private static void sendBuzzMessage(String message) {
+        try {
+            String url = System.getenv("URL");
+            URL obj = new URL(url);
+            HttpsURLConnection connection = (HttpsURLConnection) obj.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+            CatFactPostBody catFactPostBody = new CatFactPostBody(message);
+            String postData = new ObjectMapper().writeValueAsString(catFactPostBody);
+            try (DataOutputStream wr = new DataOutputStream(connection.getOutputStream())) {
+                wr.write(postData.getBytes());
+            }
+            connection.getInputStream();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    public void sendSMSMessage() {
-       amazonSNS.publish(new PublishRequest()
-                .withMessage(getCatFact())
-                .withTopicArn(System.getenv("ARN")));
-    }
-
-    private String getCatFact() {
+    private static String getCatFact() {
         try {
             String url = "http://catfacts-api.appspot.com/api/facts?number=1";
 
@@ -45,6 +47,6 @@ public class Texter {
     }
 
     public static void main() {
-        new Texter().sendSMSMessage();
+        sendBuzzMessage(getCatFact());
     }
 }
